@@ -10,7 +10,8 @@
   "scripts": {
     "dev:frontend": "npm run dev --workspace=apps/web-dashboard",
     "dev:backend": "npm run start:dev --workspace=apps/crawler-engine",
-    "dev:all": "npx concurrently \"npm run dev:frontend\" \"npm run dev:backend\""
+    "dev:all": "npx concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "build": "tsc"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

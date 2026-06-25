@@ -5,10 +5,8 @@ services:
     image: pgvector/pgvector:pg16
     container_name: football-intelligence-db
     restart: always
-    environment:
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: rootpassword
-      POSTGRES_DB: football_intelligence
+    env_file:
+      - .env
     ports:
       - "127.0.0.1:5432:5432"
     volumes:
@@ -63,7 +61,7 @@ services:
       - "3001:3001" # NextJS mapeado na porta 3001 para não conflitar com o Nest
     environment:
       # URL pública da API para o client-side do NextJS (Client Components)
-      NEXT_PUBLIC_API_URL: "http://localhost:3000/api"
+      NEXT_PUBLIC_API_URL: "http://crawler-engine/api"
 
 volumes:
   pgdata:
