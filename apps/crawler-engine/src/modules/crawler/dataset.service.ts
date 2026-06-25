@@ -3,6 +3,8 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as crypto from 'crypto';
 import { DatasetManifest } from '@football/contracts';
+import { PrismaService } from 'src/prisma.service';
+
 
 @Injectable()
 export class DatasetService {
@@ -10,7 +12,7 @@ export class DatasetService {
   private readonly storageDir = path.join(process.cwd(), 'storage', 'datasets');
   private readonly MAX_FILE_SIZE_BYTES = 25 * 1024 * 1024; // 25 MB
 
-  constructor() {
+  constructor(private prisma: PrismaService) {
     this.ensureStorageDirectory();
   }
 
@@ -35,14 +37,11 @@ export class DatasetService {
     source: string,
     records: any[],
   ): Promise<{ filepath: string; manifest: DatasetManifest }> {
-    
     const ndjsonContent = this.generateNDJSON(records);
     const fileSizeBytes = Buffer.byteLength(ndjsonContent, 'utf8');
 
     if (fileSizeBytes > this.MAX_FILE_SIZE_BYTES) {
-      throw new BadRequestException(
-        `Dataset excedeu 25MB (Tamanho atual: ${(fileSizeBytes / 1024 / 1024).toFixed(2)}MB). Segmentação necessária.`,
-      );
+      throw new BadRequestException('Dataset excedeu 25MB.');
     }
 
     const checksum = this.generateChecksum(ndjsonContent);
@@ -51,7 +50,19 @@ export class DatasetService {
     const filepath = path.join(this.storageDir, filename);
 
     await fs.writeFile(filepath, ndjsonContent, 'utf8');
-    this.logger.log(`Dataset salvo com sucesso: ${filename} (${fileSizeBytes} bytes)`);
+    this.logger.log(`Dataset salvo fisicamente: ${filename}`);
+
+    // Nova Integração: Persistência do Manifesto no PostgreSQL
+    await this.prisma.datasetManifest.create({
+      data: {
+        checksum,
+        category,
+        source,
+        extracted_at: new Date(),
+        raw_file_size_bytes: fileSizeBytes,
+        filepath: filename,
+      },
+    });
 
     const manifest: DatasetManifest = {
       checksum,

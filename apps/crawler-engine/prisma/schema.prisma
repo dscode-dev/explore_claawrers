@@ -1,0 +1,49 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  extensions = [vector]
+}
+
+// Enums espelhando o pacote @football/contracts
+enum Competition {
+  BRASILEIRAO_SERIE_A
+  COPA_LIBERTADORES
+  UEFA_CHAMPIONS_LEAGUE
+  PREMIER_LEAGUE
+  LA_LIGA
+  WORLD_CUP
+  COPA_AMERICA
+}
+
+model DatasetManifest {
+  id                  String   @id @default(uuid())
+  checksum            String   @unique
+  category            String   // fixtures, statistics, odds, behaviors
+  source              String   // fbref, sofascore, etc
+  extracted_at        DateTime @default(now())
+  raw_file_size_bytes Int
+  filepath            String
+
+  @@index([category, source])
+}
+
+model Statistic {
+  id                    String      @id @default(uuid())
+  competition           Competition
+  team                  String
+  observed_at           DateTime
+  
+  // Métricas extraídas
+  possession_percentage Float?
+  expected_goals        Float?
+
+  // Vetorização: O Prisma usa 'Unsupported' para tipos nativos do Postgres que fogem do padrão relacional.
+  // Assumindo um modelo de embedding padrão de 1536 dimensões (ajuste conforme seu modelo determinístico).
+  embedding             Unsupported("vector(1536)")?
+
+  @@index([team, competition])
+}

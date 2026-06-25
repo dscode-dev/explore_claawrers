@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { BullModule } from '@nestjs/bullmq';
 import { CrawlerModule } from './modules/crawler/crawler.module';
 import { HttpClientModule } from './modules/http-client/http-client.module';
+import { PrismaModule } from './prisma.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { HttpClientModule } from './modules/http-client/http-client.module';
     }),
     CrawlerModule,
     HttpClientModule,
+    PrismaModule,
   ],
   controllers: [AppController],
   providers: [AppService],
