@@ -1,0 +1,68 @@
+# ==========================================
+# Dependências do Node (Raiz e Workspaces)
+# ==========================================
+**/node_modules/
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# ==========================================
+# Compilação e Builds (NextJS e NestJS)
+# ==========================================
+dist/
+.next/
+out/
+build/
+*.tsbuildinfo
+
+# ==========================================
+# Variáveis de Ambiente e Credenciais
+# ==========================================
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.pem
+*.key
+
+# ==========================================
+# Armazenamento Local e Datasets
+# ==========================================
+# Ignora a pasta storage e todos os arquivos NDJSON pesados gerados pelos crawlers
+storage/
+*.ndjson
+*.csv
+*.parquet
+
+# (Opcional) Mantém a estrutura da pasta storage no Git sem os arquivos
+!storage/.gitkeep
+
+# ==========================================
+# Banco de Dados (Prisma/Local)
+# ==========================================
+*.db
+*.sqlite
+
+# ==========================================
+# Logs e Dumps
+# ==========================================
+logs/
+*.log
+npm-debug.log*
+
+# ==========================================
+# Sistema Operacional e IDEs
+# ==========================================
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln

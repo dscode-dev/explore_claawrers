@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: football-intelligence-db
+    restart: always
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: rootpassword
+      POSTGRES_DB: football_intelligence
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root -d football_intelligence"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: football-intelligence-redis
+    restart: always
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redisdata:/data
+    command: ["redis-server", "--appendonly", "yes"]
+
+  crawler-engine:
+    build:
+      context: . # O contexto é a raiz do monorepo
+      dockerfile: apps/crawler-engine/Dockerfile
+    container_name: football-crawler-engine
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    ports:
+      - "3000:3000" # NestJS mapeado na porta 3000
+    environment:
+      # Aponta para os containers internos usando o nome do serviço
+      DATABASE_URL: "postgresql://root:rootpassword@postgres:5432/football_intelligence?schema=public"
+      REDIS_HOST: "redis"
+      REDIS_PORT: "6379"
+    volumes:
+      # Mapeia a pasta storage para o host, garantindo que os NDJSON de 25MB persistam se o container cair
+      - ./storage:/app/storage
+
+  web-dashboard:
+    build:
+      context: .
+      dockerfile: apps/web-dashboard/Dockerfile
+    container_name: football-web-dashboard
+    restart: always
+    depends_on:
+      - crawler-engine
+    ports:
+      - "3001:3001" # NextJS mapeado na porta 3001 para não conflitar com o Nest
+    environment:
+      # URL pública da API para o client-side do NextJS (Client Components)
+      NEXT_PUBLIC_API_URL: "http://localhost:3000/api"
+
+volumes:
+  pgdata:
+  redisdata:
